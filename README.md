@@ -4,7 +4,7 @@
 
 [SSIMULACRA2](https://github.com/cloudinary/ssimulacra2) for VapourSynth with Zig.
 
-This implementation doesn't have the exact same result as the original, because a different gaussian blur algorithm is used,\
+This implementation doesn't have the exact same result as the original, because a different gaussian blur algorithm is used,
 a recursive gaussian blur is used there, and in this one a "true" gaussian blur with better performance is used.\
 With this we get up to +70% speed.
 
