@@ -86,12 +86,12 @@ pub inline fn process(src: [*]const f32, dst: [*]f32, stride: usize, width: usiz
     var i: usize = 0;
     while (i < height) : (i += 1) {
         var srcp: [9][*]const f32 = undefined;
-        var dstp: [*]f32 = dst + i * stride;
+        const dstp: [*]f32 = dst + i * stride;
         const dist_from_bottom: usize = height - 1 - i;
 
-        var tmp_arr = allocator.alignedAlloc(f32, 32, width) catch unreachable;
+        const tmp_arr = allocator.alignedAlloc(f32, 32, width) catch unreachable;
         defer allocator.free(tmp_arr);
-        var tmp: [*]f32 = tmp_arr.ptr;
+        const tmp: [*]f32 = tmp_arr.ptr;
 
         var k: usize = 0;
         while (k < radius) : (k += 1) {

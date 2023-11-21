@@ -128,7 +128,7 @@ inline fn make_positive_xyb(xyb: *[3]vec_t) void {
 
 inline fn process_vec(src: [3][]const f32, dst: [3][]f32) void {
     var out: [3]vec_t = undefined;
-    var rgb = [3]vec_t{
+    const rgb = [3]vec_t{
         src[0][0..16].*,
         src[1][0..16].*,
         src[2][0..16].*,
@@ -150,13 +150,13 @@ pub inline fn process(_srcp: [3][*]const f32, _dstp: [3][*]f32, stride: usize, w
         var x: usize = 0;
         while (x < width) : (x += 16) {
             const x2: usize = x + 16;
-            var srcps = [3][]const f32{
+            const srcps = [3][]const f32{
                 srcp[0][x..x2],
                 srcp[1][x..x2],
                 srcp[2][x..x2],
             };
 
-            var dstps = [3][]f32{
+            const dstps = [3][]f32{
                 dstp[0][x..x2],
                 dstp[1][x..x2],
                 dstp[2][x..x2],

@@ -40,16 +40,16 @@ inline fn process(src8a: [3][*]const u8, src8b: [3][*]const u8, tempp: [*]f32, s
     };
 
     const wh: usize = width * height;
-    var srcp1b = [3][*]f32{ tempp, tempp + wh, tempp + (wh * 2) };
-    var srcp2b = [3][*]f32{ tempp + (wh * 3), tempp + (wh * 4), tempp + (wh * 5) };
-    var tmpp1 = [3][*]f32{ tempp + (wh * 6), tempp + (wh * 7), tempp + (wh * 8) };
-    var tmpp2 = [3][*]f32{ tempp + (wh * 9), tempp + (wh * 10), tempp + (wh * 11) };
+    const srcp1b = [3][*]f32{ tempp, tempp + wh, tempp + (wh * 2) };
+    const srcp2b = [3][*]f32{ tempp + (wh * 3), tempp + (wh * 4), tempp + (wh * 5) };
+    const tmpp1 = [3][*]f32{ tempp + (wh * 6), tempp + (wh * 7), tempp + (wh * 8) };
+    const tmpp2 = [3][*]f32{ tempp + (wh * 9), tempp + (wh * 10), tempp + (wh * 11) };
 
-    var tmpp3: [*]f32 = tempp + (wh * 12);
-    var tmpps11: [*]f32 = tempp + (wh * 13);
-    var tmpps22: [*]f32 = tempp + (wh * 14);
-    var tmpps12: [*]f32 = tempp + (wh * 15);
-    var tmppmu1: [*]f32 = tempp + (wh * 16);
+    const tmpp3: [*]f32 = tempp + (wh * 12);
+    const tmpps11: [*]f32 = tempp + (wh * 13);
+    const tmpps22: [*]f32 = tempp + (wh * 14);
+    const tmpps12: [*]f32 = tempp + (wh * 15);
+    const tmppmu1: [*]f32 = tempp + (wh * 16);
 
     var i: usize = 0;
     const k: usize = width * height;
@@ -126,7 +126,7 @@ inline fn process(src8a: [3][*]const u8, src8b: [3][*]const u8, tempp: [*]f32, s
 
 export fn ssimulacra2GetFrame(n: c_int, activation_reason: ar, instance_data: ?*anyopaque, frame_data: ?*?*anyopaque, frame_ctx: ?*vs.FrameContext, core: ?*vs.Core, vsapi: ?*const vs.API) callconv(.C) ?*const vs.Frame {
     _ = frame_data;
-    var d: *Ssimulacra2Data = @ptrCast(@alignCast(instance_data));
+    const d: *Ssimulacra2Data = @ptrCast(@alignCast(instance_data));
 
     if (activation_reason == ar.Initial) {
         vsapi.?.requestFrameFilter.?(n, d.node1, frame_ctx);
@@ -140,23 +140,23 @@ export fn ssimulacra2GetFrame(n: c_int, activation_reason: ar, instance_data: ?*
         const width: usize = @intCast(vsapi.?.getFrameWidth.?(src1, 0));
         const height: usize = @intCast(vsapi.?.getFrameHeight.?(src1, 0));
         const stride: usize = @intCast(vsapi.?.getStride.?(src1, 0));
-        var dst = vsapi.?.copyFrame.?(src2, core).?;
-        var tmp_arr = allocator.alignedAlloc(f32, 32, width * height * 18) catch unreachable;
+        const dst = vsapi.?.copyFrame.?(src2, core).?;
+        const tmp_arr = allocator.alignedAlloc(f32, 32, width * height * 18) catch unreachable;
         defer allocator.free(tmp_arr);
 
-        var srcp1 = [3][*]const u8{
+        const srcp1 = [3][*]const u8{
             vsapi.?.getReadPtr.?(src1, 0),
             vsapi.?.getReadPtr.?(src1, 1),
             vsapi.?.getReadPtr.?(src1, 2),
         };
 
-        var srcp2 = [3][*]const u8{
+        const srcp2 = [3][*]const u8{
             vsapi.?.getReadPtr.?(src2, 0),
             vsapi.?.getReadPtr.?(src2, 1),
             vsapi.?.getReadPtr.?(src2, 2),
         };
 
-        var val = process(
+        const val = process(
             srcp1,
             srcp2,
             tmp_arr.ptr,
@@ -173,7 +173,7 @@ export fn ssimulacra2GetFrame(n: c_int, activation_reason: ar, instance_data: ?*
 
 export fn ssimulacra2Free(instance_data: ?*anyopaque, core: ?*vs.Core, vsapi: ?*const vs.API) callconv(.C) void {
     _ = core;
-    var d: *Ssimulacra2Data = @ptrCast(@alignCast(instance_data));
+    const d: *Ssimulacra2Data = @ptrCast(@alignCast(instance_data));
     vsapi.?.freeNode.?(d.node1);
     vsapi.?.freeNode.?(d.node2);
     allocator.destroy(d);
@@ -186,7 +186,7 @@ export fn ssimulacra2Create(in: ?*const vs.Map, out: ?*vs.Map, user_data: ?*anyo
 
     d.node1 = vsapi.?.mapGetNode.?(in, "reference", 0, &err).?;
     d.node2 = vsapi.?.mapGetNode.?(in, "distorted", 0, &err).?;
-    var vi: *const vs.VideoInfo = vsapi.?.getVideoInfo.?(d.node1);
+    const vi: *const vs.VideoInfo = vsapi.?.getVideoInfo.?(d.node1);
 
     if (!(vsh.isSameVideoInfo(vi, vsapi.?.getVideoInfo.?(d.node2)))) {
         vsapi.?.mapSetError.?(out, "SSIMULACRA2: both clips must have the same format and dimensions.");
@@ -202,7 +202,7 @@ export fn ssimulacra2Create(in: ?*const vs.Map, out: ?*vs.Map, user_data: ?*anyo
         return;
     }
 
-    var data: *Ssimulacra2Data = allocator.create(Ssimulacra2Data) catch unreachable;
+    const data: *Ssimulacra2Data = allocator.create(Ssimulacra2Data) catch unreachable;
     data.* = d;
 
     var deps = [_]vs.FilterDependency{

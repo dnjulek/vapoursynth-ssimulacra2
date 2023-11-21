@@ -22,11 +22,11 @@ pub inline fn ssim_map(
     var sum1 = [2]f64{ 0.0, 0.0 };
     var y: usize = 0;
     while (y < height) : (y += 1) {
-        var s11p = s11 + y * stride;
-        var s22p = s22 + y * stride;
-        var s12p = s12 + y * stride;
-        var mu1p = mu1 + y * stride;
-        var mu2p = mu2 + y * stride;
+        const s11p = s11 + y * stride;
+        const s22p = s22 + y * stride;
+        const s12p = s12 + y * stride;
+        const mu1p = mu1 + y * stride;
+        const mu2p = mu2 + y * stride;
 
         var x: usize = 0;
         while (x < width) : (x += 1) {
@@ -65,10 +65,10 @@ pub inline fn edge_map(
     var sum2 = [4]f64{ 0.0, 0.0, 0.0, 0.0 };
     var y: usize = 0;
     while (y < height) : (y += 1) {
-        var im1p = im1 + y * stride;
-        var im2p = im2 + y * stride;
-        var mu1p = mu1 + y * stride;
-        var mu2p = mu2 + y * stride;
+        const im1p = im1 + y * stride;
+        const im2p = im2 + y * stride;
+        const mu1p = mu1 + y * stride;
+        const mu2p = mu2 + y * stride;
 
         var x: usize = 0;
         while (x < width) : (x += 1) {

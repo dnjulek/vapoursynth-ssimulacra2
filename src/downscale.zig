@@ -8,7 +8,7 @@ pub inline fn process(src: [3][*]f32, dst: [3][*]f32, src_stride: usize, in_w: u
 
     var plane: usize = 0;
     while (plane < 3) : (plane += 1) {
-        var srcp = src[plane];
+        const srcp = src[plane];
         var dstp = dst[plane];
         var oy: usize = 0;
         while (oy < out_h) : (oy += 1) {
