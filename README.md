@@ -31,6 +31,4 @@ ssim = core.ssimulacra2.SSIMULACRA2(ref, dist)
 ```
 
 ## Building
-Zig ver >= 0.12.0-dev.1594
-
 ``zig build -Doptimize=ReleaseFast``
