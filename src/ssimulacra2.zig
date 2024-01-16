@@ -258,6 +258,6 @@ export fn ssimulacra2Create(in: ?*const vs.Map, out: ?*vs.Map, user_data: ?*anyo
 }
 
 export fn VapourSynthPluginInit2(plugin: *vs.Plugin, vspapi: *const vs.PLUGINAPI) void {
-    _ = vspapi.configPlugin.?("com.julek.ssimulacra2", "ssimulacra2", "VapourSynth SSIMULACRA2", vs.makeVersion(1, 0), vs.VAPOURSYNTH_API_VERSION, 0, plugin);
+    _ = vspapi.configPlugin.?("com.julek.ssimulacra2", "ssimulacra2", "VapourSynth SSIMULACRA2", vs.makeVersion(2, 0), vs.VAPOURSYNTH_API_VERSION, 0, plugin);
     _ = vspapi.registerFunction.?("SSIMULACRA2", "reference:vnode;distorted:vnode;", "clip:vnode;", ssimulacra2Create, null, plugin);
 }
