@@ -2,7 +2,7 @@ const std = @import("std");
 const vs = @import("vapoursynth").vapoursynth4;
 const vsh = @import("vapoursynth").vshelper;
 
-const blur = @import("blur.zig");
+const rblur = @import("rblur.zig");
 const downscale = @import("downscale.zig");
 const multiply = @import("multiply.zig");
 const score = @import("score.zig");
@@ -22,24 +22,52 @@ const allocator = std.heap.c_allocator;
 pub const Ssimulacra2Data = struct {
     node1: ?*vs.Node,
     node2: ?*vs.Node,
+
+    tmp_ss: []f32,
+    tmp_blur: []f32,
+
+    radius: i32,
+    mul_in: [12]f32,
+    mul_prev: [12]f32,
+    mul_prev2: [12]f32,
 };
 
-inline fn process(src8a: [3][*]const u8, src8b: [3][*]const u8, tempp: [*]f32, stride8: usize, width: usize, height: usize) f64 {
+inline fn copy_data(dst: [3][*]f32, src: [3][*]const f32, stride: usize, width: usize, height: usize) void {
+    var i: usize = 0;
+    while (i < 3) : (i += 1) {
+        var dstp = dst[i];
+        var srcp = src[i];
+        var y: usize = 0;
+        while (y < height) : (y += 1) {
+            @memcpy(dstp[0..width], srcp[0..width]);
+            srcp += stride;
+            dstp += stride;
+        }
+    }
+}
+
+inline fn process(src8a: [3][*]const u8, src8b: [3][*]const u8, stride8: usize, width: usize, height: usize, d: *Ssimulacra2Data) f64 {
     const stride: usize = stride8 >> (@sizeOf(f32) >> 1);
 
-    var srcp1 = [3][*]const f32{
+    const srcp1 = [3][*]const f32{
         @ptrCast(@alignCast(src8a[0])),
         @ptrCast(@alignCast(src8a[1])),
         @ptrCast(@alignCast(src8a[2])),
     };
 
-    var srcp2 = [3][*]const f32{
+    const srcp2 = [3][*]const f32{
         @ptrCast(@alignCast(src8b[0])),
         @ptrCast(@alignCast(src8b[1])),
         @ptrCast(@alignCast(src8b[2])),
     };
 
-    const wh: usize = width * height;
+    const wh: usize = stride * height;
+
+    if (d.tmp_ss.len == 1) {
+        d.tmp_ss = allocator.alignedAlloc(f32, 64, wh * 18) catch unreachable;
+    }
+
+    const tempp = d.tmp_ss.ptr;
     const srcp1b = [3][*]f32{ tempp, tempp + wh, tempp + (wh * 2) };
     const srcp2b = [3][*]f32{ tempp + (wh * 3), tempp + (wh * 4), tempp + (wh * 5) };
     const tmpp1 = [3][*]f32{ tempp + (wh * 6), tempp + (wh * 7), tempp + (wh * 8) };
@@ -51,12 +79,8 @@ inline fn process(src8a: [3][*]const u8, src8b: [3][*]const u8, tempp: [*]f32, s
     const tmpps12: [*]f32 = tempp + (wh * 15);
     const tmppmu1: [*]f32 = tempp + (wh * 16);
 
-    var i: usize = 0;
-    const k: usize = width * height;
-    while (i < 3) : (i += 1) {
-        @memcpy(srcp1b[i][0..k], srcp1[i][0..k]);
-        @memcpy(srcp2b[i][0..k], srcp2[i][0..k]);
-    }
+    copy_data(srcp1b, srcp1, stride, width, height);
+    copy_data(srcp2b, srcp2, stride, width, height);
 
     var plane_avg_ssim: [6][6]f64 = undefined;
     var plane_avg_edge: [6][12]f64 = undefined;
@@ -69,9 +93,9 @@ inline fn process(src8a: [3][*]const u8, src8b: [3][*]const u8, tempp: [*]f32, s
         if (scale > 0) {
             downscale.process(srcp1b, srcp1b, stride2, width2, height2);
             downscale.process(srcp2b, srcp2b, stride2, width2, height2);
-            stride2 /= 2;
-            width2 /= 2;
-            height2 /= 2;
+            stride2 = @divTrunc((stride2 + 1), 2);
+            width2 = @divTrunc((width2 + 1), 2);
+            height2 = @divTrunc((height2 + 1), 2);
         }
 
         const one_per_pixels: f64 = 1.0 / @as(f64, @floatFromInt(width2 * height2));
@@ -81,16 +105,16 @@ inline fn process(src8a: [3][*]const u8, src8b: [3][*]const u8, tempp: [*]f32, s
         var plane: usize = 0;
         while (plane < 3) : (plane += 1) {
             multiply.process(tmpp1[plane], tmpp1[plane], tmpp3, stride2, width2, height2);
-            blur.process(tmpp3, tmpps11, stride2, width2, height2);
+            rblur.process(tmpp3, tmpps11, stride2, width2, height2, d);
 
             multiply.process(tmpp2[plane], tmpp2[plane], tmpp3, stride2, width2, height2);
-            blur.process(tmpp3, tmpps22, stride2, width2, height2);
+            rblur.process(tmpp3, tmpps22, stride2, width2, height2, d);
 
             multiply.process(tmpp1[plane], tmpp2[plane], tmpp3, stride2, width2, height2);
-            blur.process(tmpp3, tmpps12, stride2, width2, height2);
+            rblur.process(tmpp3, tmpps12, stride2, width2, height2, d);
 
-            blur.process(tmpp1[plane], tmppmu1, stride2, width2, height2);
-            blur.process(tmpp2[plane], tmpp3, stride2, width2, height2);
+            rblur.process(tmpp1[plane], tmppmu1, stride2, width2, height2, d);
+            rblur.process(tmpp2[plane], tmpp3, stride2, width2, height2, d);
 
             score.ssim_map(
                 tmpps11,
@@ -141,8 +165,6 @@ export fn ssimulacra2GetFrame(n: c_int, activation_reason: ar, instance_data: ?*
         const height: usize = @intCast(vsapi.?.getFrameHeight.?(src1, 0));
         const stride: usize = @intCast(vsapi.?.getStride.?(src1, 0));
         const dst = vsapi.?.copyFrame.?(src2, core).?;
-        const tmp_arr = allocator.alignedAlloc(f32, 32, width * height * 18) catch unreachable;
-        defer allocator.free(tmp_arr);
 
         const srcp1 = [3][*]const u8{
             vsapi.?.getReadPtr.?(src1, 0),
@@ -159,10 +181,10 @@ export fn ssimulacra2GetFrame(n: c_int, activation_reason: ar, instance_data: ?*
         const val = process(
             srcp1,
             srcp2,
-            tmp_arr.ptr,
             stride,
             width,
             height,
+            d,
         );
 
         _ = vsapi.?.mapSetFloat.?(vsapi.?.getFramePropertiesRW.?(dst), "_SSIMULACRA2", val, ma.Replace);
@@ -176,6 +198,15 @@ export fn ssimulacra2Free(instance_data: ?*anyopaque, core: ?*vs.Core, vsapi: ?*
     const d: *Ssimulacra2Data = @ptrCast(@alignCast(instance_data));
     vsapi.?.freeNode.?(d.node1);
     vsapi.?.freeNode.?(d.node2);
+
+    if (d.tmp_ss.len != 1) {
+        allocator.free(d.tmp_ss);
+    }
+
+    if (d.tmp_blur.len != 1) {
+        allocator.free(d.tmp_blur);
+    }
+
     allocator.destroy(d);
 }
 
@@ -201,6 +232,13 @@ export fn ssimulacra2Create(in: ?*const vs.Map, out: ?*vs.Map, user_data: ?*anyo
         vsapi.?.freeNode.?(d.node2);
         return;
     }
+
+    var tmp = [_]f32{0.0};
+    d.tmp_ss = tmp[0..1];
+    d.tmp_blur = tmp[0..1];
+
+    const sigma: f64 = 1.5;
+    rblur.gauss_init(sigma, &d);
 
     const data: *Ssimulacra2Data = allocator.create(Ssimulacra2Data) catch unreachable;
     data.* = d;
