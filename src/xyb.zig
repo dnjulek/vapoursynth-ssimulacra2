@@ -121,9 +121,9 @@ inline fn linear_rgb_to_xyb(input: [3]vec_t) [3]vec_t {
 }
 
 inline fn make_positive_xyb(xyb: *[3]vec_t) void {
-    xyb[2] += V11 - xyb[1];
-    xyb[0] += V05;
-    xyb[1] += V005;
+    xyb[2] = (xyb[2] - xyb[1]) + V055;
+    xyb[0] = xyb[0] * V140 + V042;
+    xyb[1] += V001;
 }
 
 inline fn process_vec(src: [3][]const f32, dst: [3][]f32) void {
