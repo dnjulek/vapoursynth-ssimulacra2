@@ -54,7 +54,7 @@ inline fn process(src8a: [3][*]const u8, src8b: [3][*]const u8, stride8: usize, 
     };
 
     const wh: usize = stride * height;
-    const tmp_arr = allocator.alignedAlloc(f32, 32, width * height * 18) catch unreachable;
+    const tmp_arr = allocator.alignedAlloc(f32, 32, wh * 18) catch unreachable;
     defer allocator.free(tmp_arr);
     const tempp = tmp_arr.ptr;
     const srcp1b = [3][*]f32{ tempp, tempp + wh, tempp + (wh * 2) };
