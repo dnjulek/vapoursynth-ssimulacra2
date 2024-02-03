@@ -25,6 +25,8 @@ ssim = core.ssimulacra2.SSIMULACRA2(ref, dist)
 ```
 
 ## Building
-``zig build -Doptimize=ReleaseFast``
+[Download](https://ziglang.org/download/) the latest zig-dev and run ``zig build -Doptimize=ReleaseFast``
 
-[Download](https://ziglang.org/download/) the latest zig-dev, or run the ``build.sh`` file if you're on Linux.
+Or run the script that downloads it for you:
+- Windows: [build.bat](/build.bat)
+- Linux: [build.sh](/build.sh)
