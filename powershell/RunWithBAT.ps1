@@ -13,12 +13,12 @@ $destinationFilePath = Join-Path $destinationFileFolder "\ssimulacra2.dll"
 
 if (-not (Test-Path $zipFilePath)){
     Write-Host "Downloading zig-windows-x86_64-$version.zip..." -ForegroundColor Green
+    $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Uri $zipUrl -OutFile $zipFilePath
 }
 
 if (-not (Test-Path $zigPath)){
     Write-Host "Extracting zig-windows-x86_64-$version.zip..." -ForegroundColor Green
-    $ProgressPreference = 'SilentlyContinue'
     Expand-Archive -Path $zipFilePath -DestinationPath $PSScriptRoot -Force
 }
 
