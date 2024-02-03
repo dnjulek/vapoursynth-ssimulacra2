@@ -18,6 +18,7 @@ if (-not (Test-Path $zipFilePath)){
 
 if (-not (Test-Path $zigPath)){
     Write-Host "Extracting zig-windows-x86_64-$version.zip..." -ForegroundColor Green
+    $ProgressPreference = 'SilentlyContinue'
     Expand-Archive -Path $zipFilePath -DestinationPath $PSScriptRoot -Force
 }
 
