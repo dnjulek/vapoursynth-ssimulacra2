@@ -1,4 +1,7 @@
-# vapoursynth-chromanr
+> [!CAUTION] 
+> DEPRECATED! Use https://github.com/dnjulek/vapoursynth-zip
+
+# vapoursynth-ssimulacra2
 [![Linux](https://github.com/dnjulek/vapoursynth-ssimulacra2/actions/workflows/linux-build.yml/badge.svg)](https://github.com/dnjulek/vapoursynth-ssimulacra2/actions/workflows/linux-build.yml)
 [![Windows](https://github.com/dnjulek/vapoursynth-ssimulacra2/actions/workflows/windows-build.yml/badge.svg)](https://github.com/dnjulek/vapoursynth-ssimulacra2/actions/workflows/windows-build.yml)
 
